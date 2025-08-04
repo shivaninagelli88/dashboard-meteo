@@ -1,10 +1,13 @@
+
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
 import { useGeoStore } from '@/hooks/use-geo-store';
 import { calculateCentroid } from '@/lib/utils';
 import { Point } from '@/lib/types';
+import { Button } from './ui/button';
+import { Plus, Minus } from 'lucide-react';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
@@ -22,25 +25,24 @@ const PolygonComponent = ({
   onClick: () => void;
 }) => {
   const map = useMap();
-  const mapsLib = useMapsLibrary('maps');
   const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
 
   useEffect(() => {
-    if (!map || !mapsLib) return;
+    if (!map) return;
 
-    const newPolygon = new mapsLib.Polygon({
+    const newPolygon = new google.maps.Polygon({
       paths: path,
       ...options,
-      map: map,
     });
     
+    newPolygon.setMap(map);
     setPolygon(newPolygon);
 
     return () => {
       newPolygon.setMap(null);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, mapsLib]);
+  }, [map]);
 
   useEffect(() => {
     if (!polygon) return;
@@ -100,69 +102,90 @@ const MapViewContent = () => {
         dispatch({ type: 'UPDATE_POLYGON_PATH', payload: { id, path, centroid } });
     }, [dispatch]);
 
+    const handleZoomIn = () => {
+        if (!map) return;
+        const currentZoom = map.getZoom() || state.mapZoom;
+        dispatch({type: 'SET_MAP_ZOOM', payload: currentZoom + 1});
+    }
+
+    const handleZoomOut = () => {
+        if (!map) return;
+        const currentZoom = map.getZoom() || state.mapZoom;
+        dispatch({type: 'SET_MAP_ZOOM', payload: currentZoom - 1});
+    }
+
     return (
-        <Map
-            defaultCenter={{ lat: 51.5074, lng: -0.1278 }}
-            defaultZoom={3}
-            zoom={state.mapZoom}
-            mapId="geoweather_map"
-            onClick={handleMapClick}
-            disableDefaultUI={true}
-            zoomControl={false}
-            scrollwheel={false}
-            gestureHandling="cooperative"
-            className="w-full h-full border-none"
-        >
-            {state.polygons.map((polygon) => (
-                <PolygonComponent
-                    key={polygon.id}
-                    id={polygon.id}
-                    path={polygon.path}
-                    options={{
-                        fillColor: polygon.color,
-                        strokeColor: '#1E90FF',
-                        strokeWeight: 2,
-                        fillOpacity: 0.6,
-                        editable: true,
-                        draggable: true,
-                    }}
-                    onEdit={handlePolygonEdit}
-                    onClick={() => setActiveMarker(polygon.id)}
-                />
-            ))}
+        <div className="relative w-full h-full">
+            <Map
+                defaultCenter={{ lat: 51.5074, lng: -0.1278 }}
+                defaultZoom={3}
+                zoom={state.mapZoom}
+                mapId="geoweather_map"
+                onClick={handleMapClick}
+                disableDefaultUI={true}
+                zoomControl={false}
+                scrollwheel={false}
+                gestureHandling="cooperative"
+                className="w-full h-full border-none"
+            >
+                {state.polygons.map((polygon) => (
+                    <PolygonComponent
+                        key={polygon.id}
+                        id={polygon.id}
+                        path={polygon.path}
+                        options={{
+                            fillColor: polygon.color,
+                            strokeColor: '#1E90FF',
+                            strokeWeight: 2,
+                            fillOpacity: 0.6,
+                            editable: true,
+                            draggable: true,
+                        }}
+                        onEdit={handlePolygonEdit}
+                        onClick={() => setActiveMarker(polygon.id)}
+                    />
+                ))}
 
-            {state.isDrawing && state.currentPolygonPoints.length > 0 && (
-                <PolygonComponent
-                    id="current-drawing"
-                    path={state.currentPolygonPoints}
-                    options={{
-                        fillColor: '#87CEEB',
-                        strokeColor: '#1E90FF',
-                        strokeWeight: 2,
-                        fillOpacity: 0.5,
-                    }}
-                    onEdit={() => {}}
-                    onClick={() => {}}
-                />
-            )}
-            
-            {state.polygons.map((p) => p.centroid && (
-                <AdvancedMarker key={`marker-${p.id}`} position={p.centroid} onClick={() => setActiveMarker(p.id)} />
-            ))}
+                {state.isDrawing && state.currentPolygonPoints.length > 0 && (
+                    <PolygonComponent
+                        id="current-drawing"
+                        path={state.currentPolygonPoints}
+                        options={{
+                            fillColor: '#87CEEB',
+                            strokeColor: '#1E90FF',
+                            strokeWeight: 2,
+                            fillOpacity: 0.5,
+                        }}
+                        onEdit={() => {}}
+                        onClick={() => {}}
+                    />
+                )}
+                
+                {state.polygons.map((p) => p.centroid && (
+                    <AdvancedMarker key={`marker-${p.id}`} position={p.centroid} onClick={() => setActiveMarker(p.id)} />
+                ))}
 
-            {activeMarker && state.polygons.find(p => p.id === activeMarker)?.centroid && (
-                 <InfoWindow
-                    position={state.polygons.find(p => p.id === activeMarker)!.centroid}
-                    onCloseClick={() => setActiveMarker(null)}
-                >
-                    <div className="p-1">
-                        <h4 className="font-bold">Polygon {state.polygons.findIndex(p => p.id === activeMarker) + 1}</h4>
-                        <p>Avg. Temp: {state.polygons.find(p => p.id === activeMarker)?.averageTemperature?.toFixed(2) ?? 'N/A'} °C</p>
-                    </div>
-                </InfoWindow>
-            )}
-
-        </Map>
+                {activeMarker && state.polygons.find(p => p.id === activeMarker)?.centroid && (
+                    <InfoWindow
+                        position={state.polygons.find(p => p.id === activeMarker)!.centroid}
+                        onCloseClick={() => setActiveMarker(null)}
+                    >
+                        <div className="p-1">
+                            <h4 className="font-bold">Polygon {state.polygons.findIndex(p => p.id === activeMarker) + 1}</h4>
+                            <p>Avg. Temp: {state.polygons.find(p => p.id === activeMarker)?.averageTemperature?.toFixed(2) ?? 'N/A'} °C</p>
+                        </div>
+                    </InfoWindow>
+                )}
+            </Map>
+            <div className="absolute top-4 right-4 flex flex-col gap-2">
+                <Button size="icon" onClick={handleZoomIn} aria-label="Zoom in">
+                    <Plus />
+                </Button>
+                <Button size="icon" onClick={handleZoomOut} aria-label="Zoom out">
+                    <Minus />
+                </Button>
+            </div>
+        </div>
     );
 };
 
