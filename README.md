@@ -1,96 +1,88 @@
-GeoWeather Insights
+# GeoWeather Insights
 
-GeoWeather Insights is a geospatial analytics dashboard I built from scratch using Next.js, TypeScript, and Shadcn/UI. It allows users to draw polygons on a map, fetch real-time weather data for those areas using the Open-Meteo API, and visualize the data with fully customizable color rules.
+GeoWeather Insights is a modern geospatial analytics dashboard that allows users to draw polygons on a map, visualize weather data for those areas, and customize the display based on user-defined rules.
 
-It also features a GenAI-based tool to suggest the optimal initial zoom level for the map.
+This application is built with Next.js, TypeScript, and Shadcn/UI, utilizing the Google Maps API for mapping and the Open-Meteo API for weather data. It also features a GenAI-powered tool to suggest an optimal initial map zoom level.
 
-Features:
+## Features
 
-Interactive Map – Built using the Google Maps API with a fixed zoom.
+- **Interactive Map**: A Google Maps-based interface with a fixed, non-user-scrollable zoom.
+- **Polygon Drawing Tool**: Draw, view, and delete custom polygons on the map.
+- **Timeline Slider**: Select a specific hour or a time range over a 30-day window to fetch weather data.
+- **Customizable Color Rules**: Define rules to color polygons based on fetched temperature data (e.g., temperature > 25°C is red).
+- **Dynamic Data Fetching**: Polygons automatically fetch and display the average temperature from the Open-Meteo API based on their centroid and the selected timeline.
+- **AI Initial Zoom Advisor**: A tool that suggests an appropriate initial zoom level for the map to best fit a given area.
+- **Persistent State**: Application state such as polygons and rules are saved to `localStorage`.
 
-Polygon Drawing Tool – Draw, view, and delete custom polygons (3–12 points).
+## Libraries & Tech Stack
 
-Timeline Slider – Select a single hour or a time range within a 30-day window.
+- **Framework**: [Next.js](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **UI Components**: [Shadcn/UI](https://ui.shadcn.com/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **State Management**: React Context API with `useReducer`
+- **Mapping**: [@vis.gl/react-google-maps](https://vis.gl/modules/react-google-maps)
+- **Date/Time**: [date-fns](https://date-fns.org/)
+- **Icons**: [Lucide React](https://lucide.dev/)
 
-Color Rules – Define thresholds to color polygons based on temperature data.
+## Getting Started
 
-Dynamic Weather Data – Fetch and update polygon temperature values using Open-Meteo API.
+Follow these instructions to get the project running on your local machine.
 
-AI Zoom Advisor – Suggests initial zoom level using a GenAI model.
+### Prerequisites
 
-State Persistence – Saves polygons, timeline, and rules to localStorage.
+- Node.js (v18 or later)
+- npm or yarn
 
-Tech Stack:
+### Installation & Setup
 
-Framework: Next.js (App Router)
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/geoweather-insights.git
+    cd geoweather-insights
+    ```
 
-Language: TypeScript
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-UI: Shadcn/UI, Tailwind CSS
+3.  **Set up Environment Variables:**
 
-Maps: @vis.gl/react-google-maps
+    You'll need a Google Maps API key. Make sure to enable the "Maps JavaScript API" in your Google Cloud Console.
 
-State Management: React Context + useReducer
+    Create a new file named `.env.local` in the root of the project and add your API key:
 
-Date/Time: date-fns
+    ```
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="YOUR_GOOGLE_MAPS_API_KEY"
+    ```
 
-Icons: Lucide React
+### Running the Application
 
-Weather API: Open-Meteo
+Once the setup is complete, you can run the development server:
 
-Getting Started
-
-Prerequisites:
-
-Node.js (v18 or later)
-
-npm or yarn
-
-Installation:
-
-Clone the repository:
-git clone https://github.com/shivaninagelli88/geoweather-insights.git
-cd geoweather-insights
-
-Install dependencies:
-npm install
-
-Create a .env.local file in the root of the project:
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="your-google-maps-api-key"
-
-Make sure you've enabled "Maps JavaScript API" in your Google Cloud Console.
-
-Run locally:
+```bash
 npm run dev
+```
 
-The app will be available at http://localhost:9002
+The application will be available at `http://localhost:9002`.
 
-Deployment (Vercel Recommended)
+## Deployment
 
-Push your code to a GitHub repo.
+This Next.js application is optimized for deployment on platforms like Vercel or Netlify.
 
-Import your repo in Vercel.
+### Deploying with Vercel
 
-Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in project environment variables.
+1.  Push your code to a GitHub repository.
+2.  Import the repository into your Vercel account.
+3.  Vercel will automatically detect that it's a Next.js project.
+4.  Add your `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` as an environment variable in the Vercel project settings.
+5.  Click "Deploy". Your application will be built and deployed.
 
-Click Deploy.
+## How to Use
 
-How to Use:
-
-Draw Polygons: Click Start Drawing > click on the map to add points > click Finish Drawing.
-
-Select Time: Use the slider at the bottom to choose a specific hour or time range.
-
-Define Color Rules: In the sidebar, click Add Rule and set conditions (e.g., temp > 25 = red).
-
-View & Manage: Polygons update based on data; hover to see average values; delete if needed.
-
-License:
-MIT License © 2025 Sai Shivani Nagelli
-
-Author:
-Sai Shivani Nagelli
-Hyderabad, India
-Email: shivanisai1753@gmail.com
-LinkedIn: https://www.linkedin.com/in/sai-shivani-nagelli-bb1566248/
-GitHub: https://github.com/shivaninagelli88
+1.  **Draw Polygons**: Click "Start Drawing" in the sidebar. Click on the map to add points to your polygon. Click "Finish Drawing" when you're done.
+2.  **Select Time**: Use the timeline slider at the bottom to select a specific hour or a time range.
+3.  **Set Color Rules**: In the sidebar, click "Add Rule" to define how polygons should be colored based on temperature.
+4.  **View Data**: Polygons will automatically update their color based on the fetched data and your rules. Hover over a polygon to see its average temperature.
+5.  **Manage Polygons**: You can delete individual polygons or all of them using the buttons in the sidebar.(edit as i did this own )
