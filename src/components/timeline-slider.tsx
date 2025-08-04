@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { useGeoStore } from '@/context/geo-context';
+import { useGeoStore } from '@/hooks/use-geo-store';
 import { Slider } from './ui/slider';
 import { Card, CardContent } from './ui/card';
 import { addHours, format, subDays, addDays } from 'date-fns';

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Separator } from './ui/separator';
-import { useGeoStore } from '@/context/geo-context';
+import { useGeoStore } from '@/hooks/use-geo-store';
 import { ColorRule } from '@/lib/types';
 import {
   Dialog,

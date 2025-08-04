@@ -4,7 +4,8 @@ import React, { useEffect } from 'react';
 import Sidebar from '@/components/sidebar';
 import MapView from '@/components/map-view';
 import TimelineSlider from '@/components/timeline-slider';
-import { GeoProvider, useGeoStore } from '@/context/geo-context';
+import { GeoProvider } from '@/context/geo-context';
+import { useGeoStore } from '@/hooks/use-geo-store';
 import { ColorRule, PolygonData } from '@/lib/types';
 
 const AppContainer = () => {

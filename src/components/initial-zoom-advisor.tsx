@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from './ui/button';
-import { useGeoStore } from '@/context/geo-context';
+import { useGeoStore } from '@/hooks/use-geo-store';
 import { suggestInitialZoom } from '@/ai/flows/initial-zoom-advisor';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';

@@ -1,11 +1,69 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { APIProvider, Map, AdvancedMarker, PolygonF, InfoWindow, useMap } from '@vis.gl/react-google-maps';
-import { useGeoStore } from '@/context/geo-context';
+import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { useGeoStore } from '@/hooks/use-geo-store';
 import { calculateCentroid } from '@/lib/utils';
+import { Point } from '@/lib/types';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+
+const PolygonComponent = ({
+  id,
+  path,
+  options,
+  onEdit,
+  onClick,
+}: {
+  id: string;
+  path: Point[];
+  options?: google.maps.PolygonOptions;
+  onEdit: (id: string, newPath: google.maps.MVCArray<google.maps.LatLng>) => void;
+  onClick: () => void;
+}) => {
+  const map = useMap();
+  const mapsLib = useMapsLibrary('maps');
+  const [polygon, setPolygon] = useState<google.maps.Polygon | null>(null);
+
+  useEffect(() => {
+    if (!map || !mapsLib) return;
+
+    const newPolygon = new mapsLib.Polygon({
+      paths: path,
+      ...options,
+      map: map,
+    });
+    
+    setPolygon(newPolygon);
+
+    return () => {
+      newPolygon.setMap(null);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, mapsLib]);
+
+  useEffect(() => {
+    if (!polygon) return;
+    polygon.setOptions(options);
+  }, [polygon, options]);
+
+  useEffect(() => {
+    if(!polygon) return;
+
+    const clickListener = polygon.addListener('click', onClick);
+    const mouseUpListener = polygon.addListener('mouseup', () => {
+      onEdit(id, polygon.getPath());
+    });
+
+    return () => {
+        clickListener.remove();
+        mouseUpListener.remove();
+    }
+  }, [polygon, id, onEdit, onClick]);
+
+
+  return null;
+};
 
 const MapViewContent = () => {
     const { state, dispatch } = useGeoStore();
@@ -56,9 +114,10 @@ const MapViewContent = () => {
             className="w-full h-full border-none"
         >
             {state.polygons.map((polygon) => (
-                <PolygonF
+                <PolygonComponent
                     key={polygon.id}
-                    paths={polygon.path}
+                    id={polygon.id}
+                    path={polygon.path}
                     options={{
                         fillColor: polygon.color,
                         strokeColor: '#1E90FF',
@@ -67,23 +126,23 @@ const MapViewContent = () => {
                         editable: true,
                         draggable: true,
                     }}
-                    onMouseUp={e => {
-                      const newPath = (e.target as google.maps.Polygon).getPath();
-                      handlePolygonEdit(polygon.id, newPath);
-                    }}
+                    onEdit={handlePolygonEdit}
                     onClick={() => setActiveMarker(polygon.id)}
                 />
             ))}
 
             {state.isDrawing && state.currentPolygonPoints.length > 0 && (
-                <PolygonF
-                    paths={state.currentPolygonPoints}
+                <PolygonComponent
+                    id="current-drawing"
+                    path={state.currentPolygonPoints}
                     options={{
                         fillColor: '#87CEEB',
                         strokeColor: '#1E90FF',
                         strokeWeight: 2,
                         fillOpacity: 0.5,
                     }}
+                    onEdit={() => {}}
+                    onClick={() => {}}
                 />
             )}
             
