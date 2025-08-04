@@ -1,28 +1,12 @@
 'use client';
 
-import React, { createContext, useReducer, Dispatch, ReactNode, useEffect } from 'react';
+import React, { createContext, useReducer, Dispatch, ReactNode, useEffect, useState } from 'react';
 import type { PolygonData, ColorRule, GeoState, Action, Point } from '@/lib/types';
-import { subDays, addDays } from 'date-fns';
+import { addDays } from 'date-fns';
 import { DEFAULT_RULES } from '@/lib/constants';
 import { calculateCentroid } from '@/lib/utils';
 
-
-const getInitialState = (): GeoState => {
-    if (typeof window !== 'undefined') {
-        const storedState = localStorage.getItem('geoWeatherState');
-        if (storedState) {
-            const parsedState = JSON.parse(storedState);
-            // Dates need to be re-hydrated from strings
-            return {
-                ...parsedState,
-                timeline: {
-                    start: new Date(parsedState.timeline.start),
-                    end: new Date(parsedState.timeline.end),
-                },
-            };
-        }
-    }
-
+const createInitialState = (): GeoState => {
     const now = new Date();
     return {
         polygons: [],
@@ -42,6 +26,8 @@ const getInitialState = (): GeoState => {
 
 const geoReducer = (state: GeoState, action: Action): GeoState => {
     switch (action.type) {
+        case 'SET_INITIAL_STATE':
+            return action.payload;
         case 'TOGGLE_DRAWING':
             return { ...state, isDrawing: !state.isDrawing, currentPolygonPoints: [] };
         case 'ADD_POINT_TO_CURRENT_POLYGON':
@@ -96,11 +82,40 @@ const geoReducer = (state: GeoState, action: Action): GeoState => {
 export const GeoContext = createContext<{ state: GeoState; dispatch: Dispatch<Action> } | undefined>(undefined);
 
 export const GeoProvider = ({ children }: { children: ReactNode }) => {
-    const [state, dispatch] = useReducer(geoReducer, getInitialState());
+    const [state, dispatch] = useReducer(geoReducer, createInitialState());
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
-        localStorage.setItem('geoWeatherState', JSON.stringify(state));
-    }, [state]);
+        const storedState = localStorage.getItem('geoWeatherState');
+        if (storedState) {
+            try {
+                const parsedState = JSON.parse(storedState);
+                dispatch({
+                    type: 'SET_INITIAL_STATE',
+                    payload: {
+                        ...parsedState,
+                        timeline: {
+                            start: new Date(parsedState.timeline.start),
+                            end: new Date(parsedState.timeline.end),
+                        },
+                    },
+                });
+            } catch(e) {
+                // ignore parsing errors
+            }
+        }
+        setIsInitialized(true);
+    }, []);
+
+    useEffect(() => {
+        if(isInitialized){
+            localStorage.setItem('geoWeatherState', JSON.stringify(state));
+        }
+    }, [state, isInitialized]);
+    
+    if (!isInitialized) {
+        return null; // or a loading spinner
+    }
 
     return (
         <GeoContext.Provider value={{ state, dispatch }}>

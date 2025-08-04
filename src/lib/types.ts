@@ -35,6 +35,7 @@ export interface GeoState {
 }
 
 export type Action =
+    | { type: 'SET_INITIAL_STATE', payload: GeoState }
     | { type: 'TOGGLE_DRAWING' }
     | { type: 'ADD_POINT_TO_CURRENT_POLYGON'; payload: Point }
     | { type: 'FINISH_DRAWING' }
